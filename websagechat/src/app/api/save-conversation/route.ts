@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       await fs.appendFile(filePath, contentWithSeparator, 'utf8');
       
       // 2. sage_talk_conversations.md에도 저장
-      const sageContent = `\n### ${fileName.replace('.md', '')} - ${timestamp}\n${newContent}---\n\n`;
+      const sageContent = `\n### ${fileName.replace('.md', '')} - ${new Date().toLocaleString('ko-KR')}\n${newContent}---\n\n`;
       await fs.appendFile(sageFilePath, sageContent, 'utf8');
       
       return NextResponse.json({ 
