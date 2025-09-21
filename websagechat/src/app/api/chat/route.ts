@@ -157,7 +157,11 @@ async function callOpenAIAPI(messages: Array<{role: string, content: string}>, s
       temperature: 0.7,
       messages: [
         { role: "system", content: systemPrompt },
-        ...messages.slice(-10) // 최근 10개 메시지만 전송 (비용 절약)
+  
+        ...messages.slice(-10).map(msg => ({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        }))
       ]
     });
     
