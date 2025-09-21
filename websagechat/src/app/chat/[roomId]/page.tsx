@@ -269,7 +269,7 @@ export default function ChatPage() {
           timestamp: new Date(),
           type: 'system'
         };
-        setMessages(prev => [...prev, systemMsg]);
+        setChatMessages(prev => [...prev, systemMsg]);
       }
       return true;
     }
@@ -298,7 +298,7 @@ export default function ChatPage() {
           timestamp: new Date(),
           type: 'system'
         };
-        setMessages(prev => [...prev, systemMsg]);
+        setChatMessages(prev => [...prev, systemMsg]);
       }
       return true;
     }
@@ -315,7 +315,7 @@ export default function ChatPage() {
         timestamp: new Date(),
         type: 'system'
       };
-      setMessages(prev => [...prev, systemMsg]);
+      setChatMessages(prev => [...prev, systemMsg]);
       return true;
     }
 
@@ -359,7 +359,7 @@ export default function ChatPage() {
           timestamp: new Date(),
           type: 'message'
         };
-        setMessages(prev => [...prev, aiMessage]);
+        setChatMessages(prev => [...prev, aiMessage]);
         setIsLoading(false);
         return;
       }
