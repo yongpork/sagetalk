@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { autoCommitToGitHub } from '@/lib/github-utils';
 
 // 채팅방 ID와 파일 경로 매핑
 const ROOM_FILE_MAPPING = {
@@ -61,15 +62,52 @@ export async function POST(request: NextRequest) {
       const sageContent = `\n### ${fileName.replace('.md', '')} - ${new Date().toLocaleString('ko-KR')}\n${newContent}---\n\n`;
       await fs.appendFile(sageFilePath, sageContent, 'utf8');
       
-      // 3. 클라우드 백업 (추후 구현 예정)
-      // TODO: Vercel KV 또는 Supabase 연동으로 클라우드 저장
-      // await kv.set(`conversation:${roomId}:${Date.now()}`, contentWithSeparator);
+      // 3. GitHub 자동 백업
+      let githubBackupResult = null;
+      try {
+        console.log('🔄 GitHub 자동 백업 시작...');
+        
+        // 개별 파일과 통합 파일 모두 백업
+        const backupPromises = [
+          autoCommitToGitHub(
+            `Conversation/${fileName}`, 
+            contentWithSeparator,
+            `대화 저장: ${fileName}`
+          ),
+          autoCommitToGitHub(
+            'sage_talk_conversations.md',
+            sageContent,
+            `통합 대화 저장: ${fileName}`
+          )
+        ];
+        
+        const backupResults = await Promise.allSettled(backupPromises);
+        githubBackupResult = backupResults.map((result, index) => ({
+          file: index === 0 ? fileName : 'sage_talk_conversations.md',
+          success: result.status === 'fulfilled' && result.value.success,
+          message: result.status === 'fulfilled' ? result.value.message : result.reason?.message || '백업 실패'
+        }));
+        
+        console.log('✅ GitHub 자동 백업 완료');
+        
+      } catch (githubError) {
+        console.error('❌ GitHub 백업 오류:', githubError);
+        githubBackupResult = {
+          success: false,
+          error: githubError instanceof Error ? githubError.message : '알 수 없는 오류'
+        };
+      }
       
       return NextResponse.json({ 
         success: true, 
         message: '대화 기록이 저장되었습니다.', 
         files: [fileName, 'sage_talk_conversations.md'],
-        note: '현재는 로컬 파일에만 저장됩니다. 클라우드 백업은 추후 구현 예정입니다.'
+        local: {
+          saved: true,
+          files: [fileName, 'sage_talk_conversations.md']
+        },
+        github: githubBackupResult,
+        timestamp: new Date().toISOString()
       });
       
     } catch (fileError) {
