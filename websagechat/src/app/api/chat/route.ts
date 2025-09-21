@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
     const responses = [];
     
     for (const mentor of mentors) {
-      const systemPrompt = MENTOR_PROMPTS[mentor] || `당신은 ${mentor}입니다. 전문적이고 따뜻한 조언을 제공해주세요.`;
+      const systemPrompt = MENTOR_PROMPTS[mentor as keyof typeof MENTOR_PROMPTS] || `당신은 ${mentor}입니다. 전문적이고 따뜻한 조언을 제공해주세요.`;
       
       let response;
       if (aiModel === 'claude') {
