@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Magic UI Animations */
+@keyframes shimmer-slide {
+  0% { transform: translate(-100%, -100%) rotate(30deg); }
+  100% { transform: translate(100%, 100%) rotate(30deg); }
+}
+
+@keyframes spin-around {
+  0% { transform: translateZ(0) rotate(0deg); }
+  15%, 35% { transform: translateZ(0) rotate(90deg); }
+  65%, 85% { transform: translateZ(0) rotate(270deg); }
+  100% { transform: translateZ(0) rotate(360deg); }
+}
+
+.animate-shimmer-slide {
+  animation: shimmer-slide var(--speed, 3s) ease-in-out infinite;
+}
+
+.animate-spin-around {
+  animation: spin-around calc(var(--speed, 3s) * 2) infinite linear;
+}
+
+@keyframes meteor {
+  0% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(400px) translateX(-150px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(600px) translateX(-200px) scale(0);
+  }
+}
+
+.animate-meteor {
+  animation: meteor var(--duration) linear infinite;
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  animation: gradient 3s ease infinite;
+}
+
+/* Next.js 개발 인디케이터 숨기기 */
+div[data-nextjs-portal] {
+  display: none !important;
+}
+
+/* 개발 모드 오버레이 숨기기 */
+div[data-nextjs-toast] {
+  display: none !important;
+}
+
+/* 빌드 인디케이터 숨기기 */
+div[data-nextjs-preloader] {
+  display: none !important;
+}
+
+/* 터보팩/Next dev 인디케이터 숨기기 (모든 위치) */
+[data-nextjs-dev-overlay],
+div[style*="position: fixed"][style*="bottom"],
+div[style*="position: fixed"][style*="top"],
+div[aria-label="Next.js build indicator"],
+div[id*="next-build-indicator"],
+div[class*="nextjs"]:has(svg[aria-label="N"]) {
+  display: none !important;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* iOS 15+ 하단/상단 안전영역 보정 유틸 */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Next.js 개발 도구 플로팅 배너 숨기기 */
+#__next-build-watcher {
+  display: none !important;
+}
+
+/* Turbopack 개발 도구 숨기기 */
+[data-nextjs-scroll-focus-boundary] > div:last-child {
+  display: none !important;
+}
+
+/* 일반적인 개발 도구 오버레이 숨기기 */
+.__next-dev-overlay {
+  display: none !important;
+}
