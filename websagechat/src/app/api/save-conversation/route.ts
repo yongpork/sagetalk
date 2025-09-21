@@ -54,17 +54,22 @@ export async function POST(request: NextRequest) {
     const contentWithSeparator = separator + newContent + '\n';
     
     try {
-      // 1. 개별 채팅방 파일에 저장
+      // 1. 개별 채팅방 파일에 저장 (로컬)
       await fs.appendFile(filePath, contentWithSeparator, 'utf8');
       
-      // 2. sage_talk_conversations.md에도 저장
+      // 2. sage_talk_conversations.md에도 저장 (로컬)
       const sageContent = `\n### ${fileName.replace('.md', '')} - ${new Date().toLocaleString('ko-KR')}\n${newContent}---\n\n`;
       await fs.appendFile(sageFilePath, sageContent, 'utf8');
       
+      // 3. 클라우드 백업 (추후 구현 예정)
+      // TODO: Vercel KV 또는 Supabase 연동으로 클라우드 저장
+      // await kv.set(`conversation:${roomId}:${Date.now()}`, contentWithSeparator);
+      
       return NextResponse.json({ 
         success: true, 
-        message: '대화 기록이 저장되었습니다.',
-        files: [fileName, 'sage_talk_conversations.md']
+        message: '대화 기록이 저장되었습니다.', 
+        files: [fileName, 'sage_talk_conversations.md'],
+        note: '현재는 로컬 파일에만 저장됩니다. 클라우드 백업은 추후 구현 예정입니다.'
       });
       
     } catch (fileError) {
