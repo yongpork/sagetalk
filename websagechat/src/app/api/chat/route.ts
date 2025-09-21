@@ -160,7 +160,7 @@ async function callOpenAIAPI(messages: Array<{role: string, content: string}>, s
         ...messages.slice(-10).map(msg => ({
           role: msg.role === 'user' ? 'user' : 'assistant',
           content: msg.content
-        }))
+        } as const))
       ]
     });
     
