@@ -45,16 +45,6 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [mentorMap, setMentorMap] = useState<Map<string, Mentor>>(new Map());
 
-  useEffect(() => {
-    loadRoomInfo();
-    loadMessages();
-    loadMentorData();
-  }, [roomId, loadRoomInfo, loadMessages, loadMentorData]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   const loadMentorData = useCallback(async () => {
     try {
       const response = await fetch('/mentors.json');
@@ -110,6 +100,16 @@ export default function ChatPage() {
       console.error('Failed to load messages:', error);
     }
   }, [roomId]);
+
+  useEffect(() => {
+    loadRoomInfo();
+    loadMessages();
+    loadMentorData();
+  }, [roomId, loadRoomInfo, loadMessages, loadMentorData]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
