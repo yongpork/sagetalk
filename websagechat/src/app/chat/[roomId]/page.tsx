@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MessageBubble } from '@/components/kakao/MessageBubble';
 import { ChatInput } from '@/components/kakao/ChatInput';
@@ -49,13 +49,13 @@ export default function ChatPage() {
     loadRoomInfo();
     loadMessages();
     loadMentorData();
-  }, [roomId]);
+  }, [roomId, loadRoomInfo, loadMessages, loadMentorData]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const loadMentorData = async () => {
+  const loadMentorData = useCallback(async () => {
     try {
       const response = await fetch('/mentors.json');
       const data = await response.json();
@@ -67,9 +67,9 @@ export default function ChatPage() {
     } catch (error) {
       console.error('Failed to load mentor data:', error);
     }
-  };
+  }, []);
 
-  const loadRoomInfo = () => {
+  const loadRoomInfo = useCallback(() => {
     try {
       const saved = localStorage.getItem(`room_${roomId}`);
       if (saved) {
@@ -93,9 +93,9 @@ export default function ChatPage() {
     } catch (error) {
       console.error('Failed to load room info:', error);
     }
-  };
+  }, [roomId]);
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     try {
       const response = await fetch(`/api/history?roomId=${roomId}`);
       const data = await response.json();
@@ -109,7 +109,7 @@ export default function ChatPage() {
     } catch (error) {
       console.error('Failed to load messages:', error);
     }
-  };
+  }, [roomId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -224,7 +224,7 @@ export default function ChatPage() {
       const saved = localStorage.getItem('chatRooms');
       if (saved) {
         const rooms = JSON.parse(saved);
-        const updatedRooms = rooms.map((room: any) => {
+        const updatedRooms = rooms.map((room: { id: string; [key: string]: unknown }) => {
           if (room.id === roomId) {
             return {
               ...room,

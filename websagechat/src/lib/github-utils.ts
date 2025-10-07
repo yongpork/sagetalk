@@ -38,9 +38,9 @@ export async function autoCommitToGitHub(
         currentContent = Buffer.from(data.content, 'base64').toString('utf8');
         sha = data.sha;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 파일이 존재하지 않는 경우 (404 에러)
-      if (error.status !== 404) {
+      if ((error as { status?: number }).status !== 404) {
         throw error;
       }
       console.log(`📄 새 파일 생성: ${filePath}`);
@@ -69,7 +69,7 @@ export async function autoCommitToGitHub(
       message: 'GitHub에 자동 백업되었습니다.'
     };
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ GitHub 자동 커밋 실패:', error.message);
     
     return {
@@ -110,7 +110,7 @@ export async function batchCommitToGitHub(
           currentContent = Buffer.from(data.content, 'base64').toString('utf8');
           sha = data.sha;
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (error.status !== 404) throw error;
       }
       
@@ -143,7 +143,7 @@ export async function batchCommitToGitHub(
       message: `${files.length}개 파일이 GitHub에 자동 백업되었습니다.`
     };
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ GitHub 배치 커밋 실패:', error.message);
     
     return {
@@ -172,7 +172,7 @@ export async function checkCommitStatus(commitSha: string) {
       message: data.commit.message,
       url: data.html_url,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
       error: error.message,
