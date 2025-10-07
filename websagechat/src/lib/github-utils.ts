@@ -70,11 +70,12 @@ export async function autoCommitToGitHub(
     };
     
   } catch (error: unknown) {
-    console.error('❌ GitHub 자동 커밋 실패:', error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('❌ GitHub 자동 커밋 실패:', errorMessage);
     
     return {
       success: false,
-      error: error.message,
+      error: errorMessage,
       message: 'GitHub 자동 백업에 실패했습니다.'
     };
   }
@@ -144,11 +145,12 @@ export async function batchCommitToGitHub(
     };
     
   } catch (error: unknown) {
-    console.error('❌ GitHub 배치 커밋 실패:', error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('❌ GitHub 배치 커밋 실패:', errorMessage);
     
     return {
       success: false,
-      error: error.message,
+      error: errorMessage,
       message: 'GitHub 배치 백업에 실패했습니다.'
     };
   }
@@ -175,7 +177,7 @@ export async function checkCommitStatus(commitSha: string) {
   } catch (error: unknown) {
     return {
       success: false,
-      error: error.message,
+      error: errorMessage,
     };
   }
 }
