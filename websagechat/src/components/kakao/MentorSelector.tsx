@@ -66,42 +66,42 @@ export function MentorSelector({
   const canConfirm = selectedMentors.length >= minSelection && selectedMentors.length <= maxSelection;
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-[#F5F5F5]">
+    <div className="flex flex-col h-full bg-[#B8C5D6]">
+      {/* 헤더 - 카카오톡 스타일 */}
+      <div className="flex items-center justify-between px-5 py-4 bg-[#A8B4C5] border-b border-[#95A3B6]">
         <button
           onClick={onCancel}
-          className="text-gray-700 hover:text-gray-900 transition-colors"
+          className="text-white hover:opacity-80 transition-opacity"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-lg font-semibold text-[#191919]">
-          멘토 선택 ({selectedMentors.length}/{mentors.length})
+        <h1 className="text-[17px] font-semibold text-white">
+          멘토 선택
         </h1>
         <button
           onClick={onConfirm}
           disabled={!canConfirm}
-          className={`text-sm font-medium transition-colors ${
+          className={`px-4 py-1.5 rounded-md text-[15px] font-medium transition-all ${
             canConfirm
-              ? 'text-blue-600 hover:text-blue-700'
-              : 'text-gray-400 cursor-not-allowed'
+              ? 'bg-[#FEE500] text-[#3C1E1E] hover:bg-[#FFE812]'
+              : 'bg-gray-400 text-gray-200 cursor-not-allowed'
           }`}
         >
           확인
         </button>
       </div>
 
-      {/* 검색바 */}
-      <div className="px-4 py-3 bg-white border-b border-gray-200">
+      {/* 검색바 - 카카오톡 스타일 */}
+      <div className="px-4 py-3 bg-[#B8C5D6]">
         <div className="relative">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="멘토 검색..."
-            className="w-full px-4 py-2 pl-10 bg-[#F5F5F5] rounded-lg text-sm text-[#191919] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="이름 검색"
+            className="w-full px-4 py-2.5 pl-10 bg-white rounded-md text-[15px] text-[#191919] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FEE500]"
           />
           <svg
             className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -114,104 +114,123 @@ export function MentorSelector({
         </div>
       </div>
 
-      {/* 카테고리 필터 */}
-      <div className="px-4 py-2 bg-white border-b border-gray-200 overflow-x-auto">
+      {/* 카테고리 필터 - 카카오톡 스타일 */}
+      <div className="px-4 py-2.5 bg-[#B8C5D6] border-b border-[#A0AEBF] overflow-x-auto scrollbar-hide">
         <div className="flex space-x-2">
           {categories.map(category => (
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-[13px] font-medium transition-all ${
                 selectedCategory === category.id
-                  ? 'bg-[#FEE500] text-[#191919]'
-                  : 'bg-[#F5F5F5] text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[#FEE500] text-[#3C1E1E] shadow-sm'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
-              {category.icon} {category.name}
+              <span className="mr-1">{category.icon}</span>
+              {category.name}
             </button>
           ))}
         </div>
       </div>
 
-      {/* 멘토 목록 */}
-      <div className="flex-1 overflow-y-auto">
+      {/* 멘토 목록 - 카카오톡 친구 목록 스타일 */}
+      <div className="flex-1 overflow-y-auto bg-white">
         {filteredMentors.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <svg className="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 bg-white">
+            <svg className="w-20 h-20 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <p className="text-sm">검색 결과가 없습니다</p>
+            <p className="text-[15px] text-gray-400">검색 결과가 없습니다</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
-            {filteredMentors.map(mentor => {
-              const isSelected = selectedMentors.includes(mentor.id);
-              const isDisabled = !isSelected && selectedMentors.length >= maxSelection;
+          <>
+            {/* 친구 카운트 헤더 */}
+            <div className="px-5 py-2 bg-[#F7F7F7] border-b border-gray-200">
+              <p className="text-[13px] text-gray-500 font-medium">
+                멘토 {filteredMentors.length}명
+              </p>
+            </div>
+            
+            <div className="divide-y divide-gray-100">
+              {filteredMentors.map(mentor => {
+                const isSelected = selectedMentors.includes(mentor.id);
+                const isDisabled = !isSelected && selectedMentors.length >= maxSelection;
 
-              return (
-                <button
-                  key={mentor.id}
-                  onClick={() => !isDisabled && onToggleMentor(mentor.id)}
-                  disabled={isDisabled}
-                  className={`w-full px-4 py-3 flex items-center space-x-3 transition-colors ${
-                    isDisabled
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:bg-[#F5F5F5] active:bg-gray-200'
-                  } ${isSelected ? 'bg-[#FEE500]/10' : 'bg-white'}`}
-                >
-                  {/* 체크박스 */}
-                  <div
-                    className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      isSelected
-                        ? 'bg-[#FEE500] border-[#FEE500]'
-                        : 'bg-white border-gray-300'
-                    }`}
+                return (
+                  <button
+                    key={mentor.id}
+                    onClick={() => !isDisabled && onToggleMentor(mentor.id)}
+                    disabled={isDisabled}
+                    className={`w-full px-5 py-3.5 flex items-center space-x-3 transition-all ${
+                      isDisabled
+                        ? 'opacity-40 cursor-not-allowed'
+                        : 'hover:bg-gray-50 active:bg-gray-100'
+                    } ${isSelected ? 'bg-[#FFF9E6]' : 'bg-white'}`}
                   >
-                    {isSelected && (
-                      <svg className="w-4 h-4 text-[#191919]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </div>
+                    {/* 체크박스 */}
+                    <div
+                      className={`flex-shrink-0 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-all ${
+                        isSelected
+                          ? 'bg-[#FEE500] border-[#FEE500]'
+                          : 'bg-white border-gray-400'
+                      }`}
+                    >
+                      {isSelected && (
+                        <svg className="w-3.5 h-3.5 text-[#3C1E1E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
 
-                  {/* 멘토 아이콘 */}
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl bg-white border border-gray-200">
-                    {mentor.icon}
-                  </div>
+                    {/* 멘토 프로필 이미지 */}
+                    <div className="flex-shrink-0 w-[50px] h-[50px] rounded-full flex items-center justify-center text-[26px] bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 shadow-sm">
+                      {mentor.icon}
+                    </div>
 
-                  {/* 멘토 정보 */}
-                  <div className="flex-1 text-left min-w-0">
-                    <h3 className="font-semibold text-[#191919] text-sm truncate">
-                      {mentor.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 truncate">
-                      {mentor.fullName} · {mentor.category}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">
-                      {mentor.description}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                    {/* 멘토 정보 */}
+                    <div className="flex-1 text-left min-w-0">
+                      <h3 className="font-semibold text-[#191919] text-[15px] truncate mb-0.5">
+                        {mentor.name}
+                      </h3>
+                      <p className="text-[13px] text-gray-500 truncate">
+                        {mentor.description}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 
-      {/* 하단 선택 정보 */}
+      {/* 하단 선택 정보 - 카카오톡 스타일 */}
       {selectedMentors.length > 0 && (
-        <div className="px-4 py-3 bg-[#F5F5F5] border-t border-gray-200">
-          <p className="text-sm text-center text-gray-600">
+        <div className="px-5 py-3.5 bg-[#F7F7F7] border-t border-gray-200">
+          <div className="flex items-center justify-center space-x-2">
             {minSelection > 1 && selectedMentors.length < minSelection ? (
-              <span className="text-orange-600">
-                최소 {minSelection}명을 선택해주세요 ({minSelection - selectedMentors.length}명 더 필요)
-              </span>
+              <>
+                <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[14px] text-orange-600 font-medium">
+                  최소 {minSelection}명 선택 필요 (현재 {selectedMentors.length}명)
+                </span>
+              </>
             ) : (
-              <span className="text-blue-600">
-                ✓ {selectedMentors.length}명 선택됨
-              </span>
+              <>
+                <div className="w-5 h-5 bg-[#FEE500] rounded-full flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-[#3C1E1E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-[14px] text-[#3C1E1E] font-medium">
+                  {selectedMentors.length}명 선택됨
+                </span>
+              </>
             )}
-          </p>
+          </div>
         </div>
       )}
     </div>
