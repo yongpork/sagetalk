@@ -93,12 +93,21 @@ export async function batchCommitToGitHub(
   try {
     console.log(`🔄 GitHub 배치 커밋 시작: ${files.length}개 파일`);
     
+    // 현재 main 브랜치의 최신 커밋 가져오기
+    const { data: refData } = await octokit.rest.git.getRef({
+      owner: REPO_OWNER,
+      repo: REPO_NAME,
+      ref: 'heads/main',
+    });
+    
+    const latestCommitSha = refData.object.sha;
+    
+    // 트리 생성
     const tree = [];
     
     for (const file of files) {
       // 각 파일의 현재 내용 가져오기
       let currentContent = '';
-      let sha = '';
       
       try {
         const { data } = await octokit.rest.repos.getContent({
@@ -109,7 +118,6 @@ export async function batchCommitToGitHub(
         
         if ('content' in data) {
           currentContent = Buffer.from(data.content, 'base64').toString('utf8');
-          sha = data.sha;
         }
       } catch (error: unknown) {
         // 404 에러가 아니면 throw (파일이 존재하지 않으면 새로 생성)
@@ -123,19 +131,35 @@ export async function batchCommitToGitHub(
       
       tree.push({
         path: file.path,
-        mode: '100644',
-        type: 'blob',
+        mode: '100644' as const,
+        type: 'blob' as const,
         content: newContent,
-        sha: sha || undefined,
       });
     }
+    
+    // 트리 생성
+    const { data: treeData } = await octokit.rest.git.createTree({
+      owner: REPO_OWNER,
+      repo: REPO_NAME,
+      base_tree: latestCommitSha,
+      tree: tree,
+    });
     
     // 커밋 생성
     const { data: commitData } = await octokit.rest.git.createCommit({
       owner: REPO_OWNER,
       repo: REPO_NAME,
       message: `${commitMessage} - ${new Date().toLocaleString('ko-KR')}`,
-      tree: tree.map(item => ({ path: item.path, sha: item.sha })),
+      tree: treeData.sha,
+      parents: [latestCommitSha],
+    });
+    
+    // main 브랜치 업데이트
+    await octokit.rest.git.updateRef({
+      owner: REPO_OWNER,
+      repo: REPO_NAME,
+      ref: 'heads/main',
+      sha: commitData.sha,
     });
     
     console.log(`✅ GitHub 배치 커밋 성공: ${commitData.html_url}`);
