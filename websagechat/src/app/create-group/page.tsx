@@ -110,17 +110,24 @@ export default function CreateGroupPage() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-white">
+      <div className="h-screen flex items-center justify-center bg-[#B8C5D6]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FEE500] mx-auto mb-4"></div>
-          <p className="text-gray-500 text-sm">멘토 정보를 불러오는 중...</p>
+          <div className="relative w-16 h-16 mx-auto mb-5">
+            {/* 카카오톡 스타일 로딩 스피너 */}
+            <div className="absolute inset-0 rounded-full bg-[#FEE500]/30"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#FEE500] animate-spin"></div>
+            <div className="absolute inset-2 rounded-full bg-[#B8C5D6] flex items-center justify-center">
+              <div className="text-2xl">💬</div>
+            </div>
+          </div>
+          <p className="text-white text-[15px] font-medium">멘토 정보를 불러오는 중...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-white">
+    <div className="h-screen bg-[#B8C5D6]">
       <MentorSelector
         mentors={mentorData.mentors}
         categories={mentorData.categories}
