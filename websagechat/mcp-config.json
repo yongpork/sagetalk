@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "chrome": {
+      "command": "node",
+      "args": ["./chrome-mcp-server.js"],
+      "env": {
+        "PATH": "/Users/markit/.nvm/versions/node/v20.19.3/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}
+
