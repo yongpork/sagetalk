@@ -112,7 +112,10 @@ export async function batchCommitToGitHub(
           sha = data.sha;
         }
       } catch (error: unknown) {
-        if (error.status !== 404) throw error;
+        // 404 에러가 아니면 throw (파일이 존재하지 않으면 새로 생성)
+        if (error && typeof error === 'object' && 'status' in error && error.status !== 404) {
+          throw error;
+        }
       }
       
       // 새 내용 추가
@@ -175,6 +178,7 @@ export async function checkCommitStatus(commitSha: string) {
       url: data.html_url,
     };
   } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
       success: false,
       error: errorMessage,
