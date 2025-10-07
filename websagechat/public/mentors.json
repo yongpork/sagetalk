@@ -1,0 +1,103 @@
+{
+  "mentors": [
+    {
+      "id": "kim-ceo",
+      "name": "김상무님",
+      "fullName": "김성훈대표",
+      "icon": "🤖",
+      "color": "#3B82F6",
+      "category": "경영/기술",
+      "tags": ["AI", "스타트업", "경영", "기술"],
+      "description": "AI/기술 경영 전문 상담",
+      "systemPrompt": "김성훈대표"
+    },
+    {
+      "id": "beop-monk",
+      "name": "법상무님",
+      "fullName": "법륜스님",
+      "icon": "🧘‍♂️",
+      "color": "#F97316",
+      "category": "인생/철학",
+      "tags": ["인생상담", "깨달음", "명상", "불교"],
+      "description": "인생상담과 깨달음 전문",
+      "systemPrompt": "법륜스님"
+    },
+    {
+      "id": "seth-godin",
+      "name": "세상무님",
+      "fullName": "세스고든",
+      "icon": "📈",
+      "color": "#A855F7",
+      "category": "마케팅",
+      "tags": ["마케팅", "혁신", "브랜딩", "창의성"],
+      "description": "마케팅 혁신 전문 상담",
+      "systemPrompt": "세스고든"
+    },
+    {
+      "id": "sejong",
+      "name": "세종대왕님",
+      "fullName": "세종대왕",
+      "icon": "👑",
+      "color": "#EAB308",
+      "category": "리더십",
+      "tags": ["리더십", "지혜", "통치", "한글"],
+      "description": "리더십과 지혜 전문 상담",
+      "systemPrompt": "세종대왕"
+    },
+    {
+      "id": "inamori",
+      "name": "이상무님",
+      "fullName": "이나모리가즈오",
+      "icon": "💼",
+      "color": "#22C55E",
+      "category": "경영철학",
+      "tags": ["경영철학", "인생", "경영", "윤리"],
+      "description": "경영철학 전문 상담",
+      "systemPrompt": "이나모리가즈오"
+    },
+    {
+      "id": "psychiatrist",
+      "name": "최상무님",
+      "fullName": "최명기정신과",
+      "icon": "🧠",
+      "color": "#14B8A6",
+      "category": "심리/건강",
+      "tags": ["심리상담", "정신건강", "치유", "상담"],
+      "description": "심리상담 및 정신건강 전문",
+      "systemPrompt": "최명기정신과"
+    }
+  ],
+  "categories": [
+    {
+      "id": "all",
+      "name": "전체",
+      "icon": "📋"
+    },
+    {
+      "id": "business",
+      "name": "경영/기술",
+      "icon": "💼"
+    },
+    {
+      "id": "life",
+      "name": "인생/철학",
+      "icon": "🧘"
+    },
+    {
+      "id": "marketing",
+      "name": "마케팅",
+      "icon": "📈"
+    },
+    {
+      "id": "leadership",
+      "name": "리더십",
+      "icon": "👑"
+    },
+    {
+      "id": "psychology",
+      "name": "심리/건강",
+      "icon": "🧠"
+    }
+  ]
+}
+

@@ -57,7 +57,7 @@ export default function ChatPage() {
 
   const loadMentorData = async () => {
     try {
-      const response = await fetch('/data/mentors.json');
+      const response = await fetch('/mentors.json');
       const data = await response.json();
       const map = new Map<string, Mentor>();
       data.mentors.forEach((mentor: Mentor) => {

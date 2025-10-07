@@ -39,7 +39,7 @@ export default function CreateGroupPage() {
 
   const loadMentorData = async () => {
     try {
-      const response = await fetch('/data/mentors.json');
+      const response = await fetch('/mentors.json');
       const data = await response.json();
       setMentorData(data);
     } catch (error) {
