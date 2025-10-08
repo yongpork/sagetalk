@@ -1,36 +1,23 @@
 {
-  "name": "websagechat",
-  "version": "0.1.0",
+  "name": "sagetalk",
+  "version": "1.0.0",
+  "description": "AI 멘토 상담 시스템 - Static HTML + jQuery + Serverless Functions",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "vercel dev",
+    "build": "echo 'Static site - no build needed'",
+    "start": "vercel dev"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.18.1",
-    "@octokit/rest": "^22.0.0",
-    "clsx": "^2.1.1",
-    "framer-motion": "^12.23.16",
-    "motion": "^12.23.12",
-    "next": "15.4.6",
-    "openai": "^5.12.2",
-    "puppeteer": "^24.22.0",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "tailwind-merge": "^3.3.1"
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "openai": "^5.12.2"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.4.6",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "vercel": "^37.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

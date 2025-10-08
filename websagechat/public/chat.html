@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SageTalk - 대화방</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <button class="chat-back-button" id="backButton">←</button>
+            <div class="chat-mentor-info">
+                <div class="chat-mentor-name" id="mentorName">멘토와 대화</div>
+                <div class="chat-mentor-status" id="mentorStatus">온라인</div>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <!-- 메시지가 여기에 표시됩니다 -->
+        </div>
+
+        <div class="chat-input-area">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="메시지를 입력하세요..."
+                autocomplete="off"
+            >
+            <button class="chat-send-button" id="sendButton">
+                ➤
+            </button>
+        </div>
+    </div>
+
+    <script src="/js/chat.js"></script>
+</body>
+</html>
+
