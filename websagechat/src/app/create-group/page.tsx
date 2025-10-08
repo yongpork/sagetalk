@@ -71,9 +71,7 @@ export default function CreateGroupPage() {
 
     // 채팅방 생성
     const roomId = `group-${Date.now()}`;
-    const roomName = selectedMentors.length === 1
-      ? selectedMentorData[0].name
-      : `${selectedMentorData[0].name} 외 ${selectedMentors.length - 1}명`;
+    const roomName = selectedMentorData.map(m => m.name).join(', ');
 
     // 채팅방 정보 저장
     const newRoom = {
