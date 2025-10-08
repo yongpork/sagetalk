@@ -3,23 +3,25 @@
     {
       "id": "kim-ceo",
       "name": "김상무님",
-      "fullName": "김성훈대표",
+      "fullName": "김성훈대표님",
       "icon": "🤖",
       "color": "#3B82F6",
       "category": "경영/기술",
       "tags": ["AI", "스타트업", "경영", "기술"],
       "description": "AI/기술 경영 전문 상담",
+      "subtitle": "AI / 기술 / 경영 / 업스테이지 대표 / 네이버 클로바 AI 총괄 책임자",
       "systemPrompt": "김성훈대표"
     },
     {
       "id": "beop-monk",
       "name": "법상무님",
       "fullName": "법륜스님",
-      "icon": "🧘‍♂️",
+      "icon": "🙏",
       "color": "#F97316",
       "category": "인생/철학",
       "tags": ["인생상담", "깨달음", "명상", "불교"],
       "description": "인생상담과 깨달음 전문",
+      "subtitle": "인생상담 / 깨달음 / 즉문즉설",
       "systemPrompt": "법륜스님"
     },
     {
@@ -31,6 +33,7 @@
       "category": "마케팅",
       "tags": ["마케팅", "혁신", "브랜딩", "창의성"],
       "description": "마케팅 혁신 전문 상담",
+      "subtitle": "마케팅 혁신 / Purple Cow / Remarkable",
       "systemPrompt": "세스고든"
     },
     {
@@ -42,6 +45,7 @@
       "category": "리더십",
       "tags": ["리더십", "지혜", "통치", "한글"],
       "description": "리더십과 지혜 전문 상담",
+      "subtitle": "리더십과 지혜 전문 상담",
       "systemPrompt": "세종대왕"
     },
     {
@@ -53,17 +57,19 @@
       "category": "경영철학",
       "tags": ["경영철학", "인생", "경영", "윤리"],
       "description": "경영철학 전문 상담",
+      "subtitle": "경영철학 / 경영의 신",
       "systemPrompt": "이나모리가즈오"
     },
     {
       "id": "psychiatrist",
       "name": "최상무님",
-      "fullName": "최명기정신과",
+      "fullName": "최명기선생님",
       "icon": "🧠",
       "color": "#14B8A6",
       "category": "심리/건강",
       "tags": ["심리상담", "정신건강", "치유", "상담"],
       "description": "심리상담 및 정신건강 전문",
+      "subtitle": "심리상담 및 정신건강 전문의",
       "systemPrompt": "최명기정신과"
     }
   ],
