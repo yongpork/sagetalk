@@ -247,8 +247,8 @@ module.exports = async (req, res) => {
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders();
 
-      // 각 멘토별로 순차적으로 스트리밍
-      for (const mentorId of mentorIdsArray) {
+      // 각 멘토별로 병렬 스트리밍 (Vercel 타임아웃 방지)
+      const mentorPromises = mentorIdsArray.map(async (mentorId) => {
         try {
           // 멘토 시작 이벤트
           res.write(`data: ${JSON.stringify({ type: 'start', mentorId })}\n\n`);
@@ -272,7 +272,10 @@ module.exports = async (req, res) => {
             message: '응답 생성 중 오류가 발생했습니다.'
           })}\n\n`);
         }
-      }
+      });
+
+      // 모든 멘토 완료 대기
+      await Promise.all(mentorPromises);
       
       // 스트리밍 종료
       res.write(`data: ${JSON.stringify({ type: 'complete' })}\n\n`);
