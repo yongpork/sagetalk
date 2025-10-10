@@ -22,20 +22,39 @@
         </div>
 
         <div class="chat-input-area">
-            <input 
-                type="text" 
-                class="chat-input" 
-                id="chatInput" 
-                placeholder="메시지를 입력하세요..."
-                autocomplete="off"
-            >
-            <button class="chat-send-button" id="sendButton">
-                ➤
-            </button>
+            <div class="input-row">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="chatInput" 
+                    placeholder="메시지를 입력하세요..."
+                    autocomplete="off"
+                >
+                <button class="chat-send-button" id="sendButton">
+                    ➤
+                </button>
+            </div>
+            <div class="image-upload-area">
+                <input 
+                    type="file" 
+                    id="imageInput" 
+                    accept="image/*" 
+                    style="display: none;"
+                >
+                <button class="image-upload-button" id="imageUploadBtn">
+                    📷 이미지 첨부
+                </button>
+                <div class="image-preview" id="imagePreview" style="display: none;">
+                    <img id="previewImg" style="max-width: 100px; max-height: 100px; border-radius: 8px;">
+                    <button class="remove-image-btn" id="removeImageBtn">×</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="/js/chat.js"></script>
 </body>
 </html>
+
+
 

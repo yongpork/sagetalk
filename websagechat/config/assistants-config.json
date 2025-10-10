@@ -1,0 +1,79 @@
+{
+  "comment": "OpenAI Assistants API 설정 파일 - 자동 생성됨",
+  "createdAt": "2025-10-10T06:36:34.100Z",
+  "commonKnowledgeFiles": 3,
+  "mentors": {
+    "kim-ceo": {
+      "assistantId": "asst_FVEvMM290sGV3MCplfMDayRR",
+      "fileIds": [
+        "file-52jiqgL2Gbvhytw1sbDrGJ",
+        "file-RDWEArUpXGxVf9fgC12mwm",
+        "file-Vz4fbmZNesNuUqLTM5z6Uh",
+        "file-LtpkYEZjmwk3ma411VGHxR"
+      ],
+      "totalFiles": 4,
+      "name": "김성훈대표님",
+      "createdAt": "2025-10-10T06:36:37.822Z"
+    },
+    "beop-monk": {
+      "assistantId": "asst_v58F4vODHtCRmjt64asbWqTR",
+      "fileIds": [
+        "file-TP1oMNELXugtCTw3ANTc5u",
+        "file-2YmKtqqDFeTbdpppnGgJJU",
+        "file-SQTKkxKz6kqe15562rvoEb",
+        "file-EBzwnMSRCGDFU2nfjvYv3t"
+      ],
+      "totalFiles": 4,
+      "name": "법륜스님",
+      "createdAt": "2025-10-10T06:36:41.551Z"
+    },
+    "seth-godin": {
+      "assistantId": "asst_e8ReOeFrRRuVA3a4GyIe6X08",
+      "fileIds": [
+        "file-Ragxa7nrxbgqQYkAsmHzTC",
+        "file-HudAJ2AfAhj6HXZYD3ut8t",
+        "file-Ncy7GrdACbB9spEfKAm96H",
+        "file-5XvuHH9MoBRx4saVoZoZtW"
+      ],
+      "totalFiles": 4,
+      "name": "세스고든",
+      "createdAt": "2025-10-10T06:36:46.302Z"
+    },
+    "sejong": {
+      "assistantId": "asst_lXAwKvdiD6UW8rPUel7c8Dvg",
+      "fileIds": [
+        "file-7ohfHxZDuK5GSVsbeZkRmQ",
+        "file-RM1XGKwbDTQC4ktMFFT89c",
+        "file-ThNRojot2sLdRnaiSfj1nA",
+        "file-AhEY5oPEyRox7G39CSXjhi"
+      ],
+      "totalFiles": 4,
+      "name": "세종대왕님",
+      "createdAt": "2025-10-10T06:36:50.005Z"
+    },
+    "inamori": {
+      "assistantId": "asst_QNpjakTOMtceuharFDm2fgP9",
+      "fileIds": [
+        "file-KhcmuPnQvYb6RaopCMdUtn",
+        "file-TLrUgmnzbCfcLjiW2U5KXZ",
+        "file-5kpXJ7VCkcBQzGXZEKYNWm",
+        "file-CBnUCLnVgNbnV4vUM4ZJYf"
+      ],
+      "totalFiles": 4,
+      "name": "이나모리가즈오",
+      "createdAt": "2025-10-10T06:36:54.006Z"
+    },
+    "psychiatrist": {
+      "assistantId": "asst_O58rgKEruo9pglAQ5NYtdksO",
+      "fileIds": [
+        "file-WXNLWSWaAYzrcDMKmC1Zdw",
+        "file-6yyP82awryJ1sLc7cA6MN4",
+        "file-NZAuNxTc8iTCFYUe5p9dwk",
+        "file-AKBVaQMZJ9LgCeWsDmUtp2"
+      ],
+      "totalFiles": 4,
+      "name": "최명기선생님",
+      "createdAt": "2025-10-10T06:36:57.719Z"
+    }
+  }
+}

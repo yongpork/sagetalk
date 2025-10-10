@@ -1,119 +1,154 @@
 const OpenAI = require('openai');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 
-// 멘토별 시스템 프롬프트 설정
-const MENTOR_PROMPTS = {
-  'kim-ceo': `당신은 김성훈 대표님입니다. AI/기술 경영 전문가로서 상담해주세요:
+// multer 설정 (메모리 저장)
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB 제한
+  }
+});
 
-핵심 분야:
-- AI 기술과 비즈니스의 융합
-- 디지털 트랜스포메이션
-- 스타트업 경영과 투자
-- 기술 혁신과 시장 전략
+// Assistants 설정 로드
+const configPath = path.join(__dirname, '../config/assistants-config.json');
+let assistantsConfig = {};
 
-상담 스타일:
-- 최신 기술 트렌드와 비즈니스 연결
-- 데이터 기반 의사결정
-- 빠른 실행과 검증
-- 실패를 통한 학습과 개선`,
+try {
+  if (fs.existsSync(configPath)) {
+    assistantsConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+  } else {
+    console.warn('⚠️  assistants-config.json이 없습니다. setup-assistants.js를 먼저 실행하세요.');
+  }
+} catch (error) {
+  console.error('❌ assistants-config.json 로드 실패:', error);
+}
 
-  'beop-monk': `당신은 법륜스님입니다. 다음 불교적 지혜로 상담해주세요:
-
-핵심 철학:
-- 모든 고통은 무지에서 비롯됨
-- 깨달음을 통한 해탈과 자유
-- 자비와 지혜의 실천
-- 현재 순간에 깨어있기
-
-상담 스타일:
-- 간단명료하고 직관적인 표현
-- "그것도 괜찮다"는 수용적 태도
-- 문제의 근본 원인 통찰
-- 실용적이고 즉시 적용 가능한 조언`,
-
-  'seth-godin': `당신은 세스 고든입니다. 다음 마케팅 철학으로 상담해주세요:
-
-핵심 철학:
-- 보랏빛 소(Purple Cow): 평범함을 거부하고 리마커블한 것 창조
-- 트라이브즈(Tribes): 공통 관심사를 가진 커뮤니티 리더십
-- 린치핀(Linchpin): 대체 불가능한 핵심 인재 되기
-
-상담 스타일:
-- 혁신적이고 도전적인 관점 제시
-- 기존 고정관념 깨뜨리기
-- 차별화된 가치 창출 방법 제안`,
-
-  'sejong': `당신은 세종대왕입니다. 조선의 위대한 왕으로서 지혜와 리더십을 나누어주세요:
-
-핵심 철학:
-- 민본주의: 백성을 하늘처럼 여기는 마음
-- 실용주의: 실생활에 도움이 되는 정책과 발명
-- 학문과 기술의 중시
-- 소통과 배려의 리더십`,
-
-  'inamori': `당신은 이나모리가즈오 회장님입니다. 다음 철학으로 상담해주세요:
-
-핵심 철학:
-- 아마노모리: "모든 것에 감사하는 마음"
-- 성공 공식: 사고방식 × 열정 × 능력
-- 경영의 본질: 이익보다는 인간의 행복과 사회 발전`,
-
-  'psychiatrist': `당신은 최명기 정신과 원장님입니다. 다음 특성을 가지고 상담해주세요:
-
-핵심 철학:
-- 사용자가 안전하게 말할 수 있도록 공감→정리→탐색→합의→작은 과제의 흐름으로 진행
-- 평가/훈계/지시 지양, 사실 확인과 감정 반영 우선
-- 구체적 실행 한 가지만 합의
-
-금기사항:
-- 원격 환경에서의 진단·약물 권고 금지
-- 자·타해 위험시 112/119, 응급실, 보호자 연결 권고`
-};
-
-// OpenAI API 호출
-async function callOpenAI(message, mentorId) {
+// OpenAI Assistants API 호출
+async function callAssistant(message, mentorId, imageFile = null) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY가 설정되지 않았습니다.');
   }
 
+  // Assistant 설정 확인
+  const mentorConfig = assistantsConfig.mentors?.[mentorId];
+  if (!mentorConfig || !mentorConfig.assistantId) {
+    throw new Error(`${mentorId}의 Assistant가 설정되지 않았습니다. setup-assistants.js를 실행하세요.`);
+  }
+
   const openai = new OpenAI({ apiKey });
-  const model = process.env.OPENAI_MODEL || 'gpt-4o';
-  const basePrompt = MENTOR_PROMPTS[mentorId] || `당신은 전문적이고 따뜻한 멘토입니다.`;
-  
-  // 시스템 정보 및 정직성 원칙 추가
-  const systemInfo = `
-
-[시스템 정보]
-- 현재 사용 중인 AI 모델: ${model}
-- 이 시스템은 OpenAI API를 사용합니다.
-
-[정직성 원칙 - 반드시 준수]
-1. 확실하지 않은 정보는 절대 추측하지 마세요.
-2. 모르는 것은 솔직하게 "잘 모르겠습니다" 또는 "확실하지 않습니다"라고 답변하세요.
-3. 사실과 의견을 명확히 구분하세요. 의견을 말할 때는 "제 생각에는..." 같은 표현을 사용하세요.
-4. 거짓 정보나 근거 없는 통계를 만들어내지 마세요.
-5. 최신 정보나 실시간 데이터는 제공할 수 없다는 점을 인정하세요.
-6. 전문 분야 외의 질문은 "제 전문 분야는 아니지만..."이라고 전제하거나, 해당 전문가 상담을 권유하세요.`;
-  
-  const systemPrompt = basePrompt + systemInfo;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: model,
-      max_tokens: 1000,
-      temperature: 0.7,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message }
-      ]
-    });
+    // 1. Thread 생성
+    const thread = await openai.beta.threads.create();
+    console.log(`[Assistant] Thread created: ${thread.id}`);
 
-    return response.choices[0].message.content || '응답을 생성할 수 없습니다.';
+    // 2. 이미지가 있으면 업로드
+    let imageFileId = null;
+    if (imageFile) {
+      console.log(`[Assistant] Uploading image: ${imageFile.originalname}, size: ${imageFile.size}`);
+      
+      // 임시 파일로 저장
+      const tempFilePath = path.join(__dirname, '../temp', imageFile.originalname);
+      fs.mkdirSync(path.dirname(tempFilePath), { recursive: true });
+      fs.writeFileSync(tempFilePath, imageFile.buffer);
+      
+      try {
+        const uploadedFile = await openai.files.create({
+          file: fs.createReadStream(tempFilePath),
+          purpose: 'vision'
+        });
+        imageFileId = uploadedFile.id;
+        console.log(`[Assistant] Image uploaded: ${imageFileId}`);
+      } finally {
+        // 임시 파일 삭제
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+      }
+    }
+
+    // 3. 메시지 추가 (이미지 포함)
+    const messageContent = [];
+    
+    if (message) {
+      messageContent.push({ type: 'text', text: message });
+    }
+    
+    if (imageFileId) {
+      messageContent.push({
+        type: 'image_file',
+        image_file: { file_id: imageFileId }
+      });
+    }
+
+    await openai.beta.threads.messages.create(thread.id, {
+      role: 'user',
+      content: messageContent
+    });
+    console.log(`[Assistant] Message added to thread: ${thread.id} (text: ${!!message}, image: ${!!imageFileId})`);
+
+    // 3. Run 실행
+    const run = await openai.beta.threads.runs.create(thread.id, {
+      assistant_id: mentorConfig.assistantId
+    });
+    console.log(`[Assistant] Run created: ${run.id} for thread: ${thread.id}`);
+
+    // 4. Run 완료 대기
+    let runStatus = await openai.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
+    console.log(`[Assistant] Run status: ${runStatus.status}`);
+    
+    // 최대 30초 대기
+    const startTime = Date.now();
+    const timeout = 30000;
+    
+    while (runStatus.status !== 'completed') {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      console.log(`[Assistant] Run status: ${runStatus.status} (${elapsed}s elapsed)`);
+      
+      if (Date.now() - startTime > timeout) {
+        throw new Error('응답 시간 초과 (30초)');
+      }
+
+      if (runStatus.status === 'failed' || runStatus.status === 'cancelled' || runStatus.status === 'expired') {
+        throw new Error(`Run 실패: ${runStatus.status} - ${runStatus.last_error?.message || '알 수 없는 오류'}`);
+      }
+
+      // 1초 대기 후 다시 확인
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      runStatus = await openai.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
+    }
+    
+    console.log(`[Assistant] Run completed!`);
+
+    // 5. 응답 메시지 가져오기
+    const messages = await openai.beta.threads.messages.list(thread.id);
+    const assistantMessages = messages.data.filter(msg => msg.role === 'assistant');
+    
+    if (assistantMessages.length === 0) {
+      throw new Error('Assistant 응답을 찾을 수 없습니다.');
+    }
+
+    // 가장 최근 응답 추출
+    const latestMessage = assistantMessages[0];
+    const textContent = latestMessage.content.find(content => content.type === 'text');
+    
+    if (!textContent) {
+      throw new Error('텍스트 응답을 찾을 수 없습니다.');
+    }
+
+    return textContent.text.value;
+
   } catch (error) {
-    console.error('OpenAI API 오류:', error);
+    console.error('OpenAI Assistants API 오류:', error);
     throw error;
   }
 }
+
+// multer 미들웨어 적용
+const uploadMiddleware = upload.single('image');
 
 // Vercel Serverless Function
 module.exports = async (req, res) => {
@@ -132,20 +167,35 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    const { message, mentorIds, roomId } = req.body;
+  // multer 미들웨어 실행
+  await new Promise((resolve, reject) => {
+    uploadMiddleware(req, res, (err) => {
+      if (err) {
+        console.error('Multer error:', err);
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
 
-    if (!message || !mentorIds || mentorIds.length === 0) {
-      return res.status(400).json({ error: '메시지와 멘토 ID가 필요합니다.' });
+  try {
+    // FormData 파싱
+    const { message, mentorIds, roomId } = req.body;
+    const imageFile = req.file; // multer가 처리한 파일
+    const mentorIdsArray = typeof mentorIds === 'string' ? JSON.parse(mentorIds) : mentorIds;
+
+    if ((!message && !imageFile) || !mentorIdsArray || mentorIdsArray.length === 0) {
+      return res.status(400).json({ error: '메시지 또는 이미지와 멘토 ID가 필요합니다.' });
     }
 
-    console.log(`[Chat API] Room: ${roomId}, Message: ${message}, Mentors: ${mentorIds.join(',')}`);
+    console.log(`[Chat API] Room: ${roomId}, Message: ${message || '이미지 전용'}, Mentors: ${mentorIdsArray.join(',')}, HasImage: ${!!imageFile}`);
 
     // 각 멘토별로 응답 생성
     const responses = [];
-    for (const mentorId of mentorIds) {
+    for (const mentorId of mentorIdsArray) {
       try {
-        const mentorResponse = await callOpenAI(message, mentorId);
+        const mentorResponse = await callAssistant(message, mentorId, imageFile);
         responses.push({
           mentorId: mentorId,
           message: mentorResponse,
@@ -153,11 +203,21 @@ module.exports = async (req, res) => {
         });
       } catch (error) {
         console.error(`멘토 ${mentorId} 응답 오류:`, error);
-        responses.push({
-          mentorId: mentorId,
-          message: '죄송합니다. 응답을 생성하는데 문제가 발생했습니다.',
-          timestamp: new Date().toISOString()
-        });
+        
+        // Assistant 미설정 오류인 경우 안내 메시지
+        if (error.message.includes('설정되지 않았습니다')) {
+          responses.push({
+            mentorId: mentorId,
+            message: '죄송합니다. 현재 이 멘토는 설정이 완료되지 않았습니다. 관리자에게 문의해주세요.',
+            timestamp: new Date().toISOString()
+          });
+        } else {
+          responses.push({
+            mentorId: mentorId,
+            message: '죄송합니다. 응답을 생성하는데 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            timestamp: new Date().toISOString()
+          });
+        }
       }
     }
 
@@ -174,4 +234,3 @@ module.exports = async (req, res) => {
     });
   }
 };
-

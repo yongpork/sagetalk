@@ -23,12 +23,14 @@ app.post('/api/create-room', (req, res) => createRoomAPI(req, res));
 app.get('/api/history', (req, res) => historyAPI(req, res));
 app.post('/api/save-conversation', (req, res) => saveConversationAPI(req, res));
 
-// 정적 파일 서빙
+// 정적 파일 서빙 (캐시 방지)
 app.get('/', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/chat.html', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(__dirname, 'public', 'chat.html'));
 });
 
@@ -40,4 +42,6 @@ app.listen(PORT, () => {
   console.log(`✅ 환경 변수: ${process.env.OPENAI_API_KEY ? 'OPENAI_API_KEY 설정됨' : '⚠️ OPENAI_API_KEY 없음'}`);
   console.log(`✅ 모델: ${process.env.OPENAI_MODEL || 'gpt-4o (기본값)'}\n`);
 });
+
+
 

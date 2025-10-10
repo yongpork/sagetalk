@@ -2,6 +2,7 @@ let roomId = '';
 let mentors = [];
 let messages = [];
 let isLoading = false;
+let selectedImage = null;
 
 // URL에서 roomId 가져오기
 function getRoomId() {
@@ -45,6 +46,41 @@ function updateHeader() {
     $('#mentorStatus').text('온라인');
 }
 
+// 마크다운 형식 변환 함수
+function formatMentorMessage(content) {
+    // 1. ### 챕터 제목을 h3 태그로 변환
+    content = content.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+    
+    // 2. ## 제목을 h2 태그로 변환
+    content = content.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+    
+    // 3. # 제목을 h1 태그로 변환
+    content = content.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+    
+    // 4. **굵은 글씨**를 strong 태그로 변환
+    content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // 5. *기울임*을 em 태그로 변환
+    content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // 6. 번호가 있는 리스트 처리
+    content = content.replace(/^(\d+)\.\s+(.*$)/gm, '<li><strong>$1.</strong> $2</li>');
+    
+    // 7. - 또는 * 불릿 포인트 처리
+    content = content.replace(/^[-*]\s+(.*$)/gm, '<li>$1</li>');
+    
+    // 8. 연속된 li 태그를 ul로 감싸기
+    content = content.replace(/(<li>.*<\/li>(\s*<li>.*<\/li>)*)/g, '<ul>$1</ul>');
+    
+    // 9. 줄바꿈을 br 태그로 변환 (단, HTML 태그 내부는 제외)
+    content = content.replace(/\n/g, '<br>');
+    
+    // 10. 빈 줄을 더 명확하게 구분
+    content = content.replace(/<br><br>/g, '<br><br>');
+    
+    return content;
+}
+
 // 메시지 추가
 function addMessage(content, isUser, mentorInfo) {
     const timestamp = new Date().toLocaleTimeString('ko-KR', { 
@@ -62,7 +98,16 @@ function addMessage(content, isUser, mentorInfo) {
         $message.append($avatar);
     }
 
-    const $bubble = $('<div>').addClass('message-bubble').text(content);
+    const $bubble = $('<div>').addClass('message-bubble');
+    
+    if (isUser) {
+        $bubble.text(content);
+    } else {
+        // 멘토 메시지는 마크다운 형식으로 변환
+        const formattedContent = formatMentorMessage(content);
+        $bubble.html(formattedContent);
+    }
+    
     $message.append($bubble);
 
     $('#chatMessages').append($message);
@@ -100,28 +145,48 @@ function scrollToBottom() {
 // 메시지 전송
 function sendMessage() {
     const message = $('#chatInput').val().trim();
-    if (!message || isLoading) {
+    if ((!message && !selectedImage) || isLoading) {
         return;
     }
 
-    // 사용자 메시지 표시
-    addMessage(message, true);
+    // 사용자 메시지 표시 (이미지 포함)
+    const displayMessage = selectedImage ? 
+        message + (message ? '\n\n📷 이미지 첨부됨' : '📷 이미지 전송') : 
+        message;
+    addMessage(displayMessage, true);
+    
+    // 이미지가 있으면 미리보기 표시
+    if (selectedImage) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            addImageMessage(e.target.result, true);
+        };
+        reader.readAsDataURL(selectedImage);
+    }
+    
     $('#chatInput').val('');
     $('#sendButton').prop('disabled', true);
     
     isLoading = true;
     showLoading();
 
+    // FormData로 이미지와 텍스트 전송
+    const formData = new FormData();
+    formData.append('roomId', roomId);
+    formData.append('message', message || '이미지를 분석해주세요');
+    formData.append('mentorIds', JSON.stringify(mentors.map(function(m) { return m.id; })));
+    
+    if (selectedImage) {
+        formData.append('image', selectedImage);
+    }
+
     // API 호출
     $.ajax({
         url: '/api/chat',
         method: 'POST',
-        data: JSON.stringify({
-            roomId: roomId,
-            message: message,
-            mentorIds: mentors.map(function(m) { return m.id; })
-        }),
-        contentType: 'application/json',
+        data: formData,
+        processData: false,
+        contentType: false,
         success: function(response) {
             hideLoading();
             
@@ -134,6 +199,11 @@ function sendMessage() {
                     addMessage(resp.message, false, mentor);
                 });
             }
+            
+            // 이미지 초기화
+            selectedImage = null;
+            $('#imagePreview').hide();
+            $('#imageInput').val('');
             
             isLoading = false;
             $('#sendButton').prop('disabled', false);
@@ -220,7 +290,53 @@ $(document).ready(function() {
         }
     });
 
+    // 이미지 업로드 버튼 클릭
+    $('#imageUploadBtn').click(function() {
+        $('#imageInput').click();
+    });
+
+    // 이미지 파일 선택
+    $('#imageInput').change(function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            selectedImage = file;
+            showImagePreview(file);
+        }
+    });
+
+    // 이미지 제거
+    $('#removeImageBtn').click(function() {
+        selectedImage = null;
+        $('#imagePreview').hide();
+        $('#imageInput').val('');
+    });
+
     // 입력창 포커스
     $('#chatInput').focus();
 });
+
+// 이미지 미리보기 표시
+function showImagePreview(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        $('#previewImg').attr('src', e.target.result);
+        $('#imagePreview').show();
+    };
+    reader.readAsDataURL(file);
+}
+
+// 이미지 메시지 표시
+function addImageMessage(imageSrc, isUser) {
+    const $messages = $('#chatMessages');
+    const messageClass = isUser ? 'user-message' : 'mentor-message';
+    const messageHtml = `
+        <div class="message ${messageClass}">
+            <div class="message-content">
+                <img src="${imageSrc}" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 8px;">
+            </div>
+        </div>
+    `;
+    $messages.append(messageHtml);
+    $messages.scrollTop($messages[0].scrollHeight);
+}
 
