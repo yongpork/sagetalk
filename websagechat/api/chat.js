@@ -39,8 +39,8 @@ if (!assistantsConfig.mentors || Object.keys(assistantsConfig.mentors).length ==
   }
 }
 
-// OpenAI Assistants API 호출
-async function callAssistant(message, mentorId, imageFile = null) {
+// OpenAI Assistants API 호출 (스트리밍 콜백 지원)
+async function callAssistant(message, mentorId, imageFile = null, onStreamChunk = null) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY가 설정되지 않았습니다.');
@@ -142,6 +142,15 @@ async function callAssistant(message, mentorId, imageFile = null) {
           const textDelta = delta.content[0].text.value;
           if (textDelta) {
             fullResponse += textDelta;
+            
+            // 스트리밍 콜백 호출 (프론트엔드로 실시간 전송)
+            if (onStreamChunk && typeof onStreamChunk === 'function') {
+              onStreamChunk({
+                mentorId,
+                chunk: textDelta,
+                fullText: fullResponse
+              });
+            }
           }
         }
       }
@@ -219,17 +228,58 @@ module.exports = async (req, res) => {
 
   try {
     // FormData 파싱
-    const { message, mentorIds, roomId } = req.body;
+    const { message, mentorIds, roomId, stream } = req.body;
     const imageFile = req.file; // multer가 처리한 파일
     const mentorIdsArray = typeof mentorIds === 'string' ? JSON.parse(mentorIds) : mentorIds;
+    const enableStream = stream === 'true' || stream === true;
 
     if ((!message && !imageFile) || !mentorIdsArray || mentorIdsArray.length === 0) {
       return res.status(400).json({ error: '메시지 또는 이미지와 멘토 ID가 필요합니다.' });
     }
 
-    console.log(`[Chat API] Room: ${roomId}, Message: ${message || '이미지 전용'}, Mentors: ${mentorIdsArray.join(',')}, HasImage: ${!!imageFile}`);
+    console.log(`[Chat API] Room: ${roomId}, Message: ${message || '이미지 전용'}, Mentors: ${mentorIdsArray.join(',')}, HasImage: ${!!imageFile}, Stream: ${enableStream}`);
 
-    // 각 멘토별로 응답 생성
+    // 스트리밍 모드
+    if (enableStream) {
+      // SSE 헤더 설정
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders();
+
+      // 각 멘토별로 순차적으로 스트리밍
+      for (const mentorId of mentorIdsArray) {
+        try {
+          // 멘토 시작 이벤트
+          res.write(`data: ${JSON.stringify({ type: 'start', mentorId })}\n\n`);
+          
+          await callAssistant(message, mentorId, imageFile, (chunk) => {
+            // 각 텍스트 조각을 SSE로 전송
+            res.write(`data: ${JSON.stringify({ 
+              type: 'chunk', 
+              mentorId,
+              chunk: chunk.chunk
+            })}\n\n`);
+          });
+          
+          // 멘토 완료 이벤트
+          res.write(`data: ${JSON.stringify({ type: 'done', mentorId })}\n\n`);
+        } catch (error) {
+          console.error(`멘토 ${mentorId} 스트리밍 실패:`, error);
+          res.write(`data: ${JSON.stringify({ 
+            type: 'error', 
+            mentorId,
+            message: '응답 생성 중 오류가 발생했습니다.'
+          })}\n\n`);
+        }
+      }
+      
+      // 스트리밍 종료
+      res.write(`data: ${JSON.stringify({ type: 'complete' })}\n\n`);
+      return res.end();
+    }
+
+    // 일반 모드 (기존 방식)
     const responses = [];
     for (const mentorId of mentorIdsArray) {
       try {

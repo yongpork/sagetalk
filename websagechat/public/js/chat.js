@@ -147,8 +147,8 @@ function scrollToBottom() {
     $messages.scrollTop($messages[0].scrollHeight);
 }
 
-// 메시지 전송
-function sendMessage() {
+// 스트리밍 메시지 전송
+function sendMessageStreaming() {
     const message = $('#chatInput').val().trim();
     if ((!message && !selectedImage) || isLoading) {
         return;
@@ -180,56 +180,122 @@ function sendMessage() {
     formData.append('roomId', roomId);
     formData.append('message', message || '이미지를 분석해주세요');
     formData.append('mentorIds', JSON.stringify(mentors.map(function(m) { return m.id; })));
+    formData.append('stream', 'true');
     
     if (selectedImage) {
         formData.append('image', selectedImage);
     }
 
-    // API 호출
-    $.ajax({
-        url: '/api/chat',
+    // 멘토별 메시지 버블 추적
+    const mentorBubbles = {};
+    const mentorTexts = {};
+
+    // FormData를 URLSearchParams로 변환 (EventSource는 GET만 지원)
+    // 대신 fetch + EventSource 조합 사용
+    const url = '/api/chat';
+    
+    fetch(url, {
         method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            hideLoading();
-            
-            // 멘토 응답 표시
-            if (response.responses && response.responses.length > 0) {
-                response.responses.forEach(function(resp) {
-                    const mentor = mentors.find(function(m) {
-                        return m.id === resp.mentorId;
-                    });
-                    addMessage(resp.message, false, mentor);
-                });
-            }
-            
-            // 이미지 초기화
-            selectedImage = null;
-            $('#imagePreview').hide();
-            $('#imageInput').val('');
-            
-            isLoading = false;
-            $('#sendButton').prop('disabled', false);
-            $('#chatInput').focus();
-        },
-        error: function(xhr, status, error) {
-            hideLoading();
-            console.error('메시지 전송 실패:', error);
-            
-            let errorMessage = '응답을 받는데 실패했습니다.';
-            if (xhr.responseJSON && xhr.responseJSON.error) {
-                errorMessage = xhr.responseJSON.error;
-            }
-            
-            addMessage(errorMessage, false, mentors[0]);
-            
-            isLoading = false;
-            $('#sendButton').prop('disabled', false);
-            $('#chatInput').focus();
+        body: formData
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        function processStream() {
+            reader.read().then(({ done, value }) => {
+                if (done) {
+                    hideLoading();
+                    isLoading = false;
+                    $('#sendButton').prop('disabled', false);
+                    $('#chatInput').focus();
+                    
+                    // 이미지 초기화
+                    selectedImage = null;
+                    $('#imagePreview').hide();
+                    $('#imageInput').val('');
+                    return;
+                }
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n\n');
+                buffer = lines.pop(); // 마지막 불완전한 라인은 버퍼에 유지
+
+                lines.forEach(line => {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.substring(6));
+                            
+                            if (data.type === 'start') {
+                                // 멘토 시작: 빈 버블 생성
+                                const mentor = mentors.find(m => m.id === data.mentorId);
+                                if (mentor) {
+                                    const $message = $('<div>').addClass('message mentor');
+                                    const $avatar = $('<img>')
+                                        .addClass('message-avatar')
+                                        .attr('src', mentor.icon)
+                                        .attr('alt', mentor.name);
+                                    const $bubble = $('<div>')
+                                        .addClass('message-bubble')
+                                        .attr('data-mentor-id', data.mentorId);
+                                    
+                                    $message.append($avatar).append($bubble);
+                                    $('#chatMessages').append($message);
+                                    
+                                    mentorBubbles[data.mentorId] = $bubble;
+                                    mentorTexts[data.mentorId] = '';
+                                    scrollToBottom();
+                                }
+                            } else if (data.type === 'chunk') {
+                                // 텍스트 조각 추가
+                                if (mentorBubbles[data.mentorId]) {
+                                    mentorTexts[data.mentorId] += data.chunk;
+                                    const formattedText = formatMentorMessage(mentorTexts[data.mentorId]);
+                                    mentorBubbles[data.mentorId].html(formattedText);
+                                    scrollToBottom();
+                                }
+                            } else if (data.type === 'done') {
+                                // 멘토 완료
+                                console.log(`멘토 ${data.mentorId} 완료`);
+                            } else if (data.type === 'error') {
+                                // 에러 처리
+                                if (mentorBubbles[data.mentorId]) {
+                                    mentorBubbles[data.mentorId].text(data.message || '응답 생성 중 오류가 발생했습니다.');
+                                }
+                            }
+                        } catch (e) {
+                            console.error('SSE 파싱 오류:', e);
+                        }
+                    }
+                });
+
+                processStream();
+            }).catch(error => {
+                console.error('스트림 읽기 오류:', error);
+                hideLoading();
+                isLoading = false;
+                $('#sendButton').prop('disabled', false);
+                addMessage('스트리밍 중 오류가 발생했습니다.', false, mentors[0]);
+            });
+        }
+
+        processStream();
+    }).catch(error => {
+        console.error('fetch 오류:', error);
+        hideLoading();
+        isLoading = false;
+        $('#sendButton').prop('disabled', false);
+        addMessage('연결 오류가 발생했습니다.', false, mentors[0]);
     });
+}
+
+// 메시지 전송 (sendMessageStreaming 사용)
+function sendMessage() {
+    sendMessageStreaming();
 }
 
 // 대화 내역 로드
