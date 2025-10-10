@@ -48,6 +48,11 @@ function updateHeader() {
 
 // 마크다운 형식 변환 함수
 function formatMentorMessage(content) {
+    // 0. OpenAI File Search 참조 주석 제거 (가장 먼저 처리)
+    content = content.replace(/【\d+:\d+†[^】]+】/g, '');
+    content = content.replace(/\[\d+:\d+\+[^\]]+\]/g, '');
+    content = content.replace(/\(\d+:\d+\+[^)]+\)/g, '');
+    
     // 1. ### 챕터 제목을 h3 태그로 변환
     content = content.replace(/^### (.*$)/gm, '<h3>$1</h3>');
     
