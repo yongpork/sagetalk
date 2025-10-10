@@ -11,18 +11,32 @@ const upload = multer({
   }
 });
 
-// Assistants 설정 로드
-const configPath = path.join(__dirname, '../config/assistants-config.json');
+// Assistants 설정 로드 (환경변수 우선, 파일 백업)
 let assistantsConfig = {};
 
-try {
-  if (fs.existsSync(configPath)) {
-    assistantsConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-  } else {
-    console.warn('⚠️  assistants-config.json이 없습니다. setup-assistants.js를 먼저 실행하세요.');
+// 1. 환경변수에서 설정 로드 (Vercel 배포용)
+if (process.env.ASSISTANTS_CONFIG) {
+  try {
+    assistantsConfig = JSON.parse(process.env.ASSISTANTS_CONFIG);
+    console.log('✅ 환경변수에서 Assistant 설정 로드됨');
+  } catch (error) {
+    console.error('❌ 환경변수 Assistant 설정 파싱 실패:', error);
   }
-} catch (error) {
-  console.error('❌ assistants-config.json 로드 실패:', error);
+}
+
+// 2. 파일에서 설정 로드 (로컬 개발용)
+if (!assistantsConfig.mentors || Object.keys(assistantsConfig.mentors).length === 0) {
+  const configPath = path.join(__dirname, '../config/assistants-config.json');
+  try {
+    if (fs.existsSync(configPath)) {
+      assistantsConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      console.log('✅ 파일에서 Assistant 설정 로드됨');
+    } else {
+      console.warn('⚠️  assistants-config.json이 없습니다. setup-assistants.js를 먼저 실행하세요.');
+    }
+  } catch (error) {
+    console.error('❌ assistants-config.json 로드 실패:', error);
+  }
 }
 
 // OpenAI Assistants API 호출
