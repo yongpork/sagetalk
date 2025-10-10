@@ -194,12 +194,17 @@ function sendMessageStreaming() {
     // 대신 fetch + EventSource 조합 사용
     const url = '/api/chat';
     
+    console.log('[Streaming] 요청 시작:', url);
+    
     fetch(url, {
         method: 'POST',
         body: formData
     }).then(response => {
+        console.log('[Streaming] 응답 상태:', response.status, response.statusText);
+        
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            console.error('[Streaming] 응답 실패:', response.status);
+            throw new Error(`Network response was not ok: ${response.status}`);
         }
         
         const reader = response.body.getReader();
@@ -232,6 +237,7 @@ function sendMessageStreaming() {
                             
                             if (data.type === 'start') {
                                 // 멘토 시작: 빈 버블 생성
+                                console.log('[Streaming] 멘토 시작:', data.mentorId);
                                 const mentor = mentors.find(m => m.id === data.mentorId);
                                 if (mentor) {
                                     const $message = $('<div>').addClass('message mentor');
@@ -252,6 +258,7 @@ function sendMessageStreaming() {
                                 }
                             } else if (data.type === 'chunk') {
                                 // 텍스트 조각 추가
+                                console.log('[Streaming] 청크 수신:', data.mentorId, data.chunk);
                                 if (mentorBubbles[data.mentorId]) {
                                     mentorTexts[data.mentorId] += data.chunk;
                                     const formattedText = formatMentorMessage(mentorTexts[data.mentorId]);
