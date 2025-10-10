@@ -117,59 +117,61 @@ async function callAssistant(message, mentorId, imageFile = null) {
     });
     console.log(`[Assistant] Message added to thread: ${thread.id} (text: ${!!message}, image: ${!!imageFileId})`);
 
-    // 3. Run 실행
-    const run = await openai.beta.threads.runs.create(thread.id, {
+    // 3. Run 실행 (스트리밍)
+    console.log(`[Assistant] Starting streaming run for ${mentorId}...`);
+    
+    const stream = await openai.beta.threads.runs.stream(thread.id, {
       assistant_id: mentorConfig.assistantId
     });
-    console.log(`[Assistant] Run created: ${run.id} for thread: ${thread.id}`);
 
-    // 4. Run 완료 대기
-    let runStatus = await openai.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
-    console.log(`[Assistant] Run status: ${runStatus.status}`);
+    let fullResponse = '';
+    let lastLogTime = Date.now();
     
-    // 최대 60초 대기 (이미지 분석 + 파일 검색 고려)
-    const startTime = Date.now();
-    const timeout = 60000;
-    
-    while (runStatus.status !== 'completed') {
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-      console.log(`[Assistant] Run status: ${runStatus.status} (${elapsed}s elapsed) - ${mentorId}`);
+    // 스트리밍 이벤트 처리
+    for await (const event of stream) {
+      // 5초마다 진행 상황 로깅
+      if (Date.now() - lastLogTime > 5000) {
+        console.log(`[Assistant] Streaming ${mentorId}... (${fullResponse.length} chars received)`);
+        lastLogTime = Date.now();
+      }
       
-      if (Date.now() - startTime > timeout) {
-        console.error(`[Assistant] Timeout for ${mentorId} after ${elapsed}s`);
-        throw new Error(`응답 시간 초과 (60초) - ${mentorId}`);
+      // text.delta 이벤트에서 텍스트 조각 추출
+      if (event.event === 'thread.message.delta') {
+        const delta = event.data.delta;
+        if (delta.content && delta.content[0] && delta.content[0].type === 'text') {
+          const textDelta = delta.content[0].text.value;
+          if (textDelta) {
+            fullResponse += textDelta;
+          }
+        }
       }
-
-      if (runStatus.status === 'failed' || runStatus.status === 'cancelled' || runStatus.status === 'expired') {
-        console.error(`[Assistant] Run failed for ${mentorId}:`, runStatus.last_error);
-        throw new Error(`Run 실패 (${mentorId}): ${runStatus.status} - ${runStatus.last_error?.message || '알 수 없는 오류'}`);
-      }
-
-      // 1초 대기 후 다시 확인
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      runStatus = await openai.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
     }
     
-    console.log(`[Assistant] Run completed!`);
+    console.log(`[Assistant] Streaming completed for ${mentorId} (${fullResponse.length} chars)`);
 
-    // 5. 응답 메시지 가져오기
-    const messages = await openai.beta.threads.messages.list(thread.id);
-    const assistantMessages = messages.data.filter(msg => msg.role === 'assistant');
+    // 스트리밍으로 받은 응답이 있으면 사용, 없으면 API에서 다시 가져오기
+    let responseText = fullResponse;
     
-    if (assistantMessages.length === 0) {
-      throw new Error('Assistant 응답을 찾을 수 없습니다.');
-    }
+    if (!responseText || responseText.length === 0) {
+      console.log(`[Assistant] Streaming response empty, fetching from API...`);
+      const messages = await openai.beta.threads.messages.list(thread.id);
+      const assistantMessages = messages.data.filter(msg => msg.role === 'assistant');
+      
+      if (assistantMessages.length === 0) {
+        throw new Error('Assistant 응답을 찾을 수 없습니다.');
+      }
 
-    // 가장 최근 응답 추출
-    const latestMessage = assistantMessages[0];
-    const textContent = latestMessage.content.find(content => content.type === 'text');
-    
-    if (!textContent) {
-      throw new Error('텍스트 응답을 찾을 수 없습니다.');
+      const latestMessage = assistantMessages[0];
+      const textContent = latestMessage.content.find(content => content.type === 'text');
+      
+      if (!textContent) {
+        throw new Error('텍스트 응답을 찾을 수 없습니다.');
+      }
+      
+      responseText = textContent.text.value;
     }
 
     // OpenAI File Search 참조 주석 제거
-    let responseText = textContent.text.value;
     responseText = responseText.replace(/【\d+:\d+†[^】]+】/g, ''); // 【4:3†markit_info.md】
     responseText = responseText.replace(/\[\d+:\d+\+[^\]]+\]/g, ''); // [4:6+source]
     responseText = responseText.replace(/\(\d+:\d+\+[^)]+\)/g, ''); // (4:5+source)
