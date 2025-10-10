@@ -153,7 +153,14 @@ async function callAssistant(message, mentorId, imageFile = null) {
       throw new Error('텍스트 응답을 찾을 수 없습니다.');
     }
 
-    return textContent.text.value;
+    // OpenAI File Search 참조 주석 제거
+    let responseText = textContent.text.value;
+    responseText = responseText.replace(/【\d+:\d+†[^】]+】/g, ''); // 【4:3†markit_info.md】
+    responseText = responseText.replace(/\[\d+:\d+\+[^\]]+\]/g, ''); // [4:6+source]
+    responseText = responseText.replace(/\(\d+:\d+\+[^)]+\)/g, ''); // (4:5+source)
+    responseText = responseText.replace(/【\d+:\d+†source】/g, ''); // 【4:7†source】
+
+    return responseText;
 
   } catch (error) {
     console.error('OpenAI Assistants API 오류:', error);
