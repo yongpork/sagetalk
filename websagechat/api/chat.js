@@ -127,20 +127,22 @@ async function callAssistant(message, mentorId, imageFile = null) {
     let runStatus = await openai.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
     console.log(`[Assistant] Run status: ${runStatus.status}`);
     
-    // 최대 30초 대기
+    // 최대 60초 대기 (이미지 분석 + 파일 검색 고려)
     const startTime = Date.now();
-    const timeout = 30000;
+    const timeout = 60000;
     
     while (runStatus.status !== 'completed') {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-      console.log(`[Assistant] Run status: ${runStatus.status} (${elapsed}s elapsed)`);
+      console.log(`[Assistant] Run status: ${runStatus.status} (${elapsed}s elapsed) - ${mentorId}`);
       
       if (Date.now() - startTime > timeout) {
-        throw new Error('응답 시간 초과 (30초)');
+        console.error(`[Assistant] Timeout for ${mentorId} after ${elapsed}s`);
+        throw new Error(`응답 시간 초과 (60초) - ${mentorId}`);
       }
 
       if (runStatus.status === 'failed' || runStatus.status === 'cancelled' || runStatus.status === 'expired') {
-        throw new Error(`Run 실패: ${runStatus.status} - ${runStatus.last_error?.message || '알 수 없는 오류'}`);
+        console.error(`[Assistant] Run failed for ${mentorId}:`, runStatus.last_error);
+        throw new Error(`Run 실패 (${mentorId}): ${runStatus.status} - ${runStatus.last_error?.message || '알 수 없는 오류'}`);
       }
 
       // 1초 대기 후 다시 확인
