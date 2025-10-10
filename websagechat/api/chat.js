@@ -64,22 +64,35 @@ async function callAssistant(message, mentorId, imageFile = null) {
     if (imageFile) {
       console.log(`[Assistant] Uploading image: ${imageFile.originalname}, size: ${imageFile.size}`);
       
-      // 임시 파일로 저장
-      const tempFilePath = path.join(__dirname, '../temp', imageFile.originalname);
-      fs.mkdirSync(path.dirname(tempFilePath), { recursive: true });
-      fs.writeFileSync(tempFilePath, imageFile.buffer);
+      // Vercel 환경에서는 /tmp 디렉토리 사용
+      const tempDir = process.env.VERCEL ? '/tmp' : path.join(__dirname, '../temp');
+      const tempFilePath = path.join(tempDir, `${Date.now()}-${imageFile.originalname}`);
       
       try {
+        // 디렉토리 생성 (필요시)
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+        }
+        
+        // 임시 파일로 저장
+        fs.writeFileSync(tempFilePath, imageFile.buffer);
+        console.log(`[Assistant] Temp file created: ${tempFilePath}`);
+        
+        // OpenAI에 업로드
         const uploadedFile = await openai.files.create({
           file: fs.createReadStream(tempFilePath),
           purpose: 'vision'
         });
         imageFileId = uploadedFile.id;
         console.log(`[Assistant] Image uploaded: ${imageFileId}`);
+      } catch (error) {
+        console.error('[Assistant] Image upload failed:', error);
+        throw new Error(`이미지 업로드 실패: ${error.message}`);
       } finally {
         // 임시 파일 삭제
         if (fs.existsSync(tempFilePath)) {
           fs.unlinkSync(tempFilePath);
+          console.log(`[Assistant] Temp file deleted: ${tempFilePath}`);
         }
       }
     }
